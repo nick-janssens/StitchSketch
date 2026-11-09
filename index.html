@@ -1,0 +1,32 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f7f5ef"><meta name="description" content="Turn a portrait into an embroidery-ready line drawing on your device.">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="StitchSketch">
+<link rel="manifest" href="./manifest.webmanifest"><link rel="icon" href="./assets/icons/stitchsketch.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="./assets/icons/stitchsketch.svg"><link rel="stylesheet" href="./styles/app.css">
+<title>StitchSketch — Portrait to outline</title>
+</head>
+<body>
+<main class="app-shell">
+<header class="topbar"><a class="brand" href="./" aria-label="StitchSketch home"><span class="brand-mark">S</span><span>StitchSketch</span></a><span class="privacy"><i></i> On-device &amp; private</span></header>
+<section class="intro"><p class="eyebrow">A little thread of inspiration</p><h1>Make a portrait<br>ready for <em>stitching.</em></h1><p class="intro-copy">Turn a favorite photo into a clean line drawing. Your image stays on this device.</p></section>
+<section class="workspace" aria-label="Portrait line drawing editor">
+<div class="preview-card"><div class="preview-heading"><span>YOUR CANVAS</span><span class="preview-status" id="preview-status">A portrait will appear here</span></div>
+<div class="preview-stage"><div class="empty-state" id="empty-state"><div class="empty-illustration">✳<i></i></div><strong>Your portrait, in outline</strong><span>Choose a photo to start creating</span></div><canvas id="result-canvas" aria-label="Generated portrait outline"></canvas><div class="busy" id="busy" hidden><span class="spinner"></span><span>Drawing your outline…</span></div></div>
+<div class="preview-footer"><span><b>✓</b> Photos never leave your device</span><button class="text-button" id="reset-button" type="button" disabled>Start over</button></div></div>
+<div class="controls-card">
+<div class="section-title"><span class="step-number">01</span><div><h2>Choose a portrait</h2><p>A clear, well-lit photo works best.</p></div></div>
+<label class="upload-button" for="photo-input"><span class="upload-icon">＋</span><span id="upload-label">Choose a photo</span><span class="upload-arrow">↗</span></label><input id="photo-input" type="file" accept="image/*" aria-label="Choose a photo"><p class="file-note">Choose an image from your photo library</p>
+<div class="section-title crop-title"><span class="step-number">02</span><div><h2>Find your framing</h2><p>Adjust the crop to focus on your subject.</p></div></div>
+<div class="crop-controls" id="crop-controls" aria-disabled="true">
+<label class="range-row"><span>Zoom</span><input type="range" id="zoom" min="100" max="240" value="100" disabled><output for="zoom">100%</output></label>
+<label class="range-row"><span>Left / right</span><input type="range" id="pan-x" min="-100" max="100" value="0" disabled><output for="pan-x">0</output></label>
+<label class="range-row"><span>Up / down</span><input type="range" id="pan-y" min="-100" max="100" value="0" disabled><output for="pan-y">0</output></label></div>
+<div class="section-title settings-title"><span class="step-number">03</span><div><h2>Shape your lines</h2><p>Fine-tune the look of your drawing.</p></div></div>
+<label class="range-row setting-row"><span>Detail</span><input type="range" id="detail" min="1" max="10" value="5"><output for="detail">5</output></label>
+<label class="range-row setting-row"><span>Line strength</span><input type="range" id="strength" min="1" max="10" value="5"><output for="strength">5</output></label>
+<button class="save-button" id="save-button" type="button" disabled><span>Save drawing to Photos</span><span>↓</span></button><p class="save-note">Your drawing is prepared on your iPhone, ready to save.</p>
+</div></section><footer class="site-footer"><span>Made for the joy of making.</span><span>StitchSketch <b>✳</b></span></footer></main><div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script type="module" src="./scripts/app.js"></script>
+</body></html>
