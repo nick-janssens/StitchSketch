@@ -13,7 +13,7 @@
 <section class="intro"><p class="eyebrow">A little thread of inspiration</p><h1>Make a portrait<br>ready for <em>stitching.</em></h1><p class="intro-copy">Turn a favorite photo into a clean line drawing. Your image stays on this device.</p></section>
 <section class="workspace" aria-label="Portrait line drawing editor">
 <div class="preview-card"><div class="preview-heading"><span>YOUR CANVAS</span><span class="preview-status" id="preview-status">A portrait will appear here</span></div>
-<div class="preview-stage"><div class="empty-state" id="empty-state"><div class="empty-illustration">✳<i></i></div><strong>Your portrait, in outline</strong><span>Choose a photo to start creating</span></div><canvas id="result-canvas" aria-label="Generated portrait outline"></canvas><div class="busy" id="busy" hidden><span class="spinner"></span><span>Drawing your outline…</span></div></div>
+<div class="preview-stage"><div class="empty-state" id="empty-state"><div class="empty-illustration">✳<i></i></div><strong>Your portrait, in outline</strong><span>Choose a photo to start creating</span></div><div class="comparison" id="comparison" hidden><figure class="comparison-item"><figcaption>Original</figcaption><canvas id="original-canvas" aria-label="Original photo crop"></canvas></figure><figure class="comparison-item"><figcaption>Line drawing</figcaption><canvas id="result-canvas" aria-label="Generated portrait outline"></canvas></figure></div><div class="busy" id="busy" hidden><span class="spinner"></span><span>Drawing your outline…</span></div></div>
 <div class="preview-footer"><span><b>✓</b> Photos never leave your device</span><button class="text-button" id="reset-button" type="button" disabled>Start over</button></div></div>
 <div class="controls-card">
 <div class="section-title"><span class="step-number">01</span><div><h2>Choose a portrait</h2><p>A clear, well-lit photo works best.</p></div></div>
@@ -30,3 +30,4 @@
 </div></section><footer class="site-footer"><span>Made for the joy of making.</span><span>StitchSketch <b>✳</b></span></footer></main><div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script type="module" src="./scripts/app.js"></script>
 </body></html>
+

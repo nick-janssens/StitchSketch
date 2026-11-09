@@ -1,16 +1,30 @@
-let activeWorker = null;
+﻿let activeWorker = null;
 let rejectActive = null;
 let requestId = 0;
 
-export function drawOutline(image, canvas, settings, crop) {
-  const size = 600;
+function cropValues(image, crop, size) {
   const scale = (size / Math.min(image.naturalWidth, image.naturalHeight)) * (crop.zoom / 100);
   const sw = size / scale;
   const sh = size / scale;
   const maxX = Math.max(0, image.naturalWidth - sw);
   const maxY = Math.max(0, image.naturalHeight - sh);
-  const sx = maxX * ((crop.x + 100) / 200);
-  const sy = maxY * ((crop.y + 100) / 200);
+  return { sx: maxX * ((crop.x + 100) / 200), sy: maxY * ((crop.y + 100) / 200), sw, sh };
+}
+
+export function drawOriginal(image, canvas, crop) {
+  const size = 600;
+  const { sx, sy, sw, sh } = cropValues(image, crop, size);
+  canvas.width = size;
+  canvas.height = size;
+  const context = canvas.getContext('2d');
+  context.fillStyle = '#fff';
+  context.fillRect(0, 0, size, size);
+  context.drawImage(image, sx, sy, sw, sh, 0, 0, size, size);
+}
+
+export function drawOutline(image, canvas, settings, crop) {
+  const size = 600;
+  const { sx, sy, sw, sh } = cropValues(image, crop, size);
   const source = document.createElement('canvas');
   source.width = size;
   source.height = size;
