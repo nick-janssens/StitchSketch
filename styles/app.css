@@ -8,3 +8,6 @@
 .comparison-item figcaption{color:#899087;font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
 .comparison-item canvas{display:block;width:100%;height:auto;aspect-ratio:1;object-fit:contain;background:#fff;box-shadow:0 7px 30px #3e42301c}
 
+
+.empty-state[hidden]{display:none}
+
