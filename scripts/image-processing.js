@@ -23,7 +23,22 @@ let activeWorker=null;
 let rejectActive=null;
 let requestId=0;
 
-export function drawOutline(source,canvas,settings,foregroundMask=null){
+function drawSmoothPath(context,points){
+  if(points.length<2)return;
+  context.beginPath();
+  context.moveTo(points[0].x,points[0].y);
+  if(points.length===2){context.lineTo(points[1].x,points[1].y)}
+  else{
+    for(let i=1;i<points.length-1;i++){
+      const x=(points[i].x+points[i+1].x)/2,y=(points[i].y+points[i+1].y)/2;
+      context.quadraticCurveTo(points[i].x,points[i].y,x,y);
+    }
+    context.lineTo(points[points.length-1].x,points[points.length-1].y);
+  }
+  context.stroke();
+}
+
+export function drawOutline(source,canvas,settings,foregroundMask=null,faceData={paths:[],regions:[]}){
   const size=source.width;
   const pixels=source.getContext('2d',{willReadFrequently:true}).getImageData(0,0,size,size);
 
@@ -43,21 +58,25 @@ export function drawOutline(source,canvas,settings,foregroundMask=null){
     };
     worker.onmessage=event=>{
       if(event.data.id!==id)return;
+      if(event.data.error){finish(new Error(event.data.error));return}
       try{
         canvas.width=size;canvas.height=size;
-        const output=new ImageData(new Uint8ClampedArray(event.data.pixels),size,size);
-        canvas.getContext('2d').putImageData(output,0,0);
+        const context=canvas.getContext('2d');
+        context.fillStyle='#fff';context.fillRect(0,0,size,size);
+        context.strokeStyle='#111';context.lineCap='round';context.lineJoin='round';
+        context.lineWidth=Math.max(.8,Math.min(2.5,.62+settings.strength*.185));
+        for(const points of event.data.paths||[])drawSmoothPath(context,points);
         finish();
       }catch(error){finish(error)}
     };
     worker.onerror=()=>finish(new Error('The drawing could not be generated. Please try another photo.'));
-    const payload={id,pixels:pixels.data.buffer,size,detail:settings.detail,strength:settings.strength};
+    const payload={id,pixels:pixels.data.buffer,size,detail:settings.detail,strength:settings.strength,style:settings.style||'classic',facePaths:faceData.paths||[],faceRegions:faceData.regions||[]};
     const transfer=[pixels.data.buffer];
     if(foregroundMask){
-      payload.foregroundMask=foregroundMask.data.buffer;
+      payload.foregroundMask=new Float32Array(foregroundMask.data).buffer;
       payload.maskWidth=foregroundMask.width;
       payload.maskHeight=foregroundMask.height;
-      transfer.push(foregroundMask.data.buffer);
+      transfer.push(payload.foregroundMask);
     }
     worker.postMessage(payload,transfer);
   });
