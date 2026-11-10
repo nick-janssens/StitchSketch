@@ -1,15 +1,40 @@
-﻿import {drawOutline,drawOriginal} from './image-processing.js';
+﻿import {createCroppedCanvas,drawOutline,drawOriginal} from './image-processing.js';
+import {segmentPerson} from './segmentation.js';
 import {saveDrawing} from './export.js';
-const $=s=>document.querySelector(s),input=$('#photo-input'),canvas=$('#result-canvas'),originalCanvas=$('#original-canvas'),comparison=$('#comparison'),empty=$('#empty-state'),busy=$('#busy'),status=$('#preview-status'),save=$('#save-button'),reset=$('#reset-button'),toast=$('#toast');
+const $=s=>document.querySelector(s),input=$('#photo-input'),canvas=$('#result-canvas'),originalCanvas=$('#original-canvas'),comparison=$('#comparison'),empty=$('#empty-state'),busy=$('#busy'),busyLabel=busy.querySelector('span:last-child'),status=$('#preview-status'),save=$('#save-button'),reset=$('#reset-button'),toast=$('#toast'),removeBackground=$('#remove-background');
 const controls={detail:$('#detail'),strength:$('#strength'),zoom:$('#zoom'),x:$('#pan-x'),y:$('#pan-y')};
 let image=null,timer=0,toastTimer=0,renderId=0;
 const saveLabel=save.querySelector('span');
 function message(text){toast.textContent=text;toast.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>toast.classList.remove('show'),4000)}
 function updateOutputs(){for(const [key,el] of Object.entries(controls)){const out=document.querySelector('output[for="'+el.id+'"]');out.value=key==='zoom'?el.value+'%':el.value}}
-function redraw(){if(!image)return;clearTimeout(timer);const currentRender=++renderId;busy.hidden=false;save.disabled=true;saveLabel.textContent='Preparing drawing…';status.textContent='Drawing your outline…';timer=setTimeout(async()=>{const crop={zoom:+controls.zoom.value,x:+controls.x.value,y:+controls.y.value};try{drawOriginal(image,originalCanvas,crop);await drawOutline(image,canvas,{detail:+controls.detail.value,strength:+controls.strength.value},crop);if(currentRender!==renderId)return;busy.hidden=true;save.disabled=false;saveLabel.textContent='Save drawing to Photos';status.textContent='Preview ready'}catch(e){if(e.name==='AbortError')return;if(currentRender===renderId){busy.hidden=true;status.textContent='Could not make a preview';saveLabel.textContent='Try another photo';message(e.message||'Could not draw this image.')}}},100)}
+function redraw(){
+  if(!image)return;
+  clearTimeout(timer);
+  const currentRender=++renderId;
+  busy.hidden=false;save.disabled=true;saveLabel.textContent='Preparing drawing…';
+  status.textContent=removeBackground.checked?'Finding the foreground…':'Drawing your outline…';
+  busyLabel.textContent=removeBackground.checked?'Separating person from background…':'Drawing your outline…';
+  timer=setTimeout(async()=>{
+    try{
+      const crop={zoom:+controls.zoom.value,x:+controls.x.value,y:+controls.y.value};
+      const source=createCroppedCanvas(image,crop);
+      drawOriginal(source,originalCanvas);
+      let mask=null;
+      if(removeBackground.checked)mask=await segmentPerson(source);
+      if(currentRender!==renderId)return;
+      await drawOutline(source,canvas,{detail:+controls.detail.value,strength:+controls.strength.value},mask);
+      if(currentRender!==renderId)return;
+      busy.hidden=true;save.disabled=false;saveLabel.textContent='Save drawing to Photos';status.textContent='Preview ready';
+    }catch(e){
+      if(e.name==='AbortError')return;
+      if(currentRender===renderId){busy.hidden=true;status.textContent='Could not make a preview';saveLabel.textContent='Try another photo';message(e.message||'Could not draw this image.')}
+    }
+  },100);
+}
 function setReady(){empty.hidden=true;comparison.hidden=false;save.disabled=true;saveLabel.textContent='Preparing drawing…';reset.disabled=false;status.textContent='Preparing preview…';for(const key of ['zoom','x','y'])controls[key].disabled=false;$('#crop-controls').setAttribute('aria-disabled','false')}
 input.addEventListener('change',()=>{const file=input.files&&input.files[0];if(!file)return;if(!file.type.startsWith('image/')){message('Please choose an image file.');return}if(image)URL.revokeObjectURL(image.src);image=new Image();image.onload=()=>{$('#upload-label').textContent=file.name.length>24?file.name.slice(0,21)+'…':file.name;controls.zoom.value=100;controls.x.value=0;controls.y.value=0;updateOutputs();setReady();redraw()};image.onerror=()=>message('This photo could not be opened. Try a JPG or PNG copy.');image.src=URL.createObjectURL(file)});
 for(const el of Object.values(controls))el.addEventListener('input',()=>{updateOutputs();redraw()});
+removeBackground.addEventListener('change',redraw);
 save.addEventListener('click',async()=>{if(!image)return;try{await saveDrawing(canvas,message)}catch(e){if(e.name!=='AbortError')message(e.message||'Could not save the drawing.')}});
 reset.addEventListener('click',()=>{clearTimeout(timer);renderId++;if(image)URL.revokeObjectURL(image.src);image=null;input.value='';$('#upload-label').textContent='Choose a photo';comparison.hidden=true;empty.hidden=false;busy.hidden=true;save.disabled=true;saveLabel.textContent='Save drawing to Photos';reset.disabled=true;status.textContent='A portrait will appear here';for(const key of ['zoom','x','y'])controls[key].disabled=true;$('#crop-controls').setAttribute('aria-disabled','true')});
 updateOutputs();

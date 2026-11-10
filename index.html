@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#f7f5ef"><meta name="description" content="Turn a portrait into an embroidery-ready line drawing on your device.">
+<meta name="theme-color" content="#f7f5ef"><meta http-equiv="Content-Security-Policy" content="connect-src 'self'"><meta name="description" content="Turn a portrait into an embroidery-ready line drawing on your device.">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="StitchSketch">
 <link rel="manifest" href="./manifest.webmanifest"><link rel="icon" href="./assets/icons/stitchsketch.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="./assets/icons/stitchsketch.svg"><link rel="stylesheet" href="./styles/app.css">
 <title>StitchSketch — Portrait to outline</title>
@@ -25,9 +25,8 @@
 <label class="range-row"><span>Up / down</span><input type="range" id="pan-y" min="-100" max="100" value="0" disabled><output for="pan-y">0</output></label></div>
 <div class="section-title settings-title"><span class="step-number">03</span><div><h2>Shape your lines</h2><p>Fine-tune the look of your drawing.</p></div></div>
 <label class="range-row setting-row"><span>Detail</span><input type="range" id="detail" min="1" max="10" value="5"><output for="detail">5</output></label>
-<label class="range-row setting-row"><span>Line strength</span><input type="range" id="strength" min="1" max="10" value="5"><output for="strength">5</output></label>
+<label class="range-row setting-row"><span>Line strength</span><input type="range" id="strength" min="1" max="10" value="5"><output for="strength">5</output></label><label class="background-toggle"><input id="remove-background" type="checkbox" checked><span>Remove background lines</span></label>
 <button class="save-button" id="save-button" type="button" disabled><span>Save drawing to Photos</span><span>↓</span></button><p class="save-note">Your drawing is prepared on your iPhone, ready to save.</p>
 </div></section><footer class="site-footer"><span>Made for the joy of making.</span><span>StitchSketch <b>✳</b></span></footer></main><div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script type="module" src="./scripts/app.js"></script>
 </body></html>
-
