@@ -6,11 +6,11 @@ const DEFAULT_ORIGINS = [
 ];
 const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
 const BASE_PROMPT = [
-  'Create a refined minimalist hand-drawn contour illustration based faithfully on the reference photograph, as a professional custom portrait prepared for hand embroidery.',
-  'Preserve the exact number of visible people, whether one person or several, their recognisable appearance, relative positions, pose, interaction, facial expressions, hairstyles, hair silhouettes, clothing, hands and body proportions. Preserve accessories such as glasses only when they are present in the photograph.',
-  'Draw only intentional, smooth, clean, continuous black contour lines on a pure white background. Keep every person and the complete original composition visible.',
-  'Use a restrained number of elegant lines: preserve the outer silhouettes, important face profiles and features, characteristic hair outlines, clothing boundaries and meaningful overlaps. Simplify detail so paths remain clear and stitchable at 10 to 20 centimetres.',
-  'Do not add people, objects, text, borders or background scenery. No color, shading, gray, gradients, shadows, texture, hatching, sketch marks, tiny isolated strokes, dense hair fill or photographic detail. Do not crop, rearrange or invent facial features.'
+  'Turn the supplied photograph into a faithful, minimalist hand-drawn contour portrait designed as a practical hand-embroidery pattern. Treat the photo as the source of truth and simplify its forms rather than redesigning the scene.',
+  'Keep the exact number of visible people, whether one person or several, and preserve their recognizable appearance, relative positions, framing, pose, interaction and expression. Retain clearly visible features, hairstyles, clothing, hands and body silhouettes. Include glasses or other accessories only when they are visibly present in the photo; do not invent details that cannot be seen.',
+  'Keep all people and their meaningful contact points in the composition. Show only a little background, preferably none. Do not add or remove people or objects, crop or rearrange the subjects, or invent facial features, clothing or body parts.',
+  'Draw on a pure white background using clean, smooth, flowing black contours with consistent line weight. Use a small, deliberate set of mostly long connected curves: prioritize each person’s outer silhouette, essential face profile and visible eyes, nose and mouth, hair outline with only a few characteristic strands, major clothing edges, and important overlaps between people.',
+  'Keep lines separated and easy to follow at a finished embroidery size of about 10 to 20 centimetres. Draw each important visual boundary once. If glasses are visible, represent each lens with one simple outline and at most a short bridge; never add inner and outer double rims, duplicate parallel strokes, lens reflections or tiny hinge details. Omit surface texture, photographic edges, shadows, shading, gray, gradients, color, fills, hatching, tiny isolated marks, dense parallel hair lines and minor folds or background detail.'
 ].join(' ');
 
 function originList(env) {
@@ -107,7 +107,9 @@ async function generate(request, env, headers) {
   if (![512, 768, 1024].includes(requestedMax) || Math.max(width, height) > 1920) throw fail('Choose a supported output size: 512, 768 or 1024 pixels.');
 
   const modelInput = new FormData();
-  modelInput.append('prompt', BASE_PROMPT);
+  const extra = String(incoming.get('extraPrompt') || '').trim().slice(0, 400);
+  const prompt = extra ? `${BASE_PROMPT} Additional user preference: ${extra}` : BASE_PROMPT;
+  modelInput.append('prompt', prompt);
   modelInput.append('input_image_0', new Blob([imageBytes], { type: 'image/jpeg' }), 'reference.jpg');
   modelInput.append('width', String(width));
   modelInput.append('height', String(height));

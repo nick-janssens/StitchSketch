@@ -10,7 +10,7 @@
     workerUrl: $('worker-url'), accessKey: $('access-key'), saveSettings: $('save-settings'),
     checkConnection: $('check-connection'), connectionStatus: $('connection-status'),
     consent: $('photo-consent'), generate: $('generate-button'), status: $('generation-status'),
-    download: $('download-button'), outputSize: $('output-size')
+    download: $('download-button'), outputSize: $('output-size'), extraPrompt: $('extra-prompt')
   };
   const SETTINGS_KEY = 'stitchsketch-flux-worker-settings-v1';
   const DEFAULT_WORKER_URL = 'https://old-morning-4019.janssens-nick.workers.dev';
@@ -206,6 +206,7 @@
       form.append('width', String(size.width));
       form.append('height', String(size.height));
       form.append('maxDimension', elements.outputSize.value);
+      form.append('extraPrompt', elements.extraPrompt.value.trim().slice(0, 400));
 
       setStatus('Sending the reference to Cloudflare and generating the drawing…');
       const response = await fetchWithAuth(`${settings.url}/generate`, settings.key, { method: 'POST', body: form });
