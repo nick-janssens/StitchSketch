@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f7f5ef">
+  <meta name="description" content="A private test of FLUX.2 Klein 4B for embroidery-style portrait drawings.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="StitchSketch AI">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="stylesheet" href="./styles.css">
+  <title>StitchSketch · FLUX.2 Klein test</title>
+</head>
+<body>
+  <header class="topbar">
+    <a class="wordmark" href="./" aria-label="StitchSketch home"><span class="wordmark-mark" aria-hidden="true">S</span><span>StitchSketch</span></a>
+    <span class="model-tag">FLUX.2 Klein 4B test</span>
+  </header>
+
+  <main>
+    <section class="intro">
+      <p class="eyebrow">AI PORTRAIT STUDY</p>
+      <h1>Turn a photo into<br>an embroidery-style drawing.</h1>
+      <p class="lede">Compare a new image-to-image model with the Informative Drawings test. This model can reinterpret a photo, so check faces, pose and small details carefully.</p>
+    </section>
+
+    <section class="panel setup-panel" aria-labelledby="photo-title">
+      <div class="section-heading">
+        <div><p class="eyebrow">01 · YOUR PHOTO</p><h2 id="photo-title">Choose a photograph</h2></div>
+      </div>
+      <label class="upload-zone" for="photo-file" id="upload-zone">
+        <span class="upload-icon" aria-hidden="true">＋</span>
+        <span class="upload-title">Select a photo</span>
+        <span class="upload-hint">JPG, PNG or another image Safari/Chrome can open</span>
+        <input id="photo-file" type="file" accept="image/*">
+      </label>
+      <div class="preview-grid" id="preview-grid" hidden>
+        <figure class="preview-card">
+          <figcaption><span>Original</span><span id="source-dimensions" class="muted"></span></figcaption>
+          <div class="image-frame"><img id="original-preview" alt="Selected original photograph"></div>
+        </figure>
+        <figure class="preview-card">
+          <figcaption><span>FLUX.2 result</span><span id="output-dimensions" class="muted"></span></figcaption>
+          <div class="image-frame result-frame" id="result-frame"><div class="empty-result">Your drawing will appear here</div><img id="result-preview" alt="Generated embroidery-style line drawing" hidden></div>
+        </figure>
+      </div>
+    </section>
+
+    <section class="panel controls-panel" aria-labelledby="controls-title">
+      <div class="section-heading">
+        <div><p class="eyebrow">02 · GENERATION</p><h2 id="controls-title">Tune the test</h2></div>
+      </div>
+      <div class="controls-row">
+        <label class="field"><span>Output size</span>
+          <select id="output-size">
+            <option value="512">512 px · faster</option>
+            <option value="768" selected>768 px · balanced</option>
+            <option value="1024">1024 px · largest</option>
+          </select>
+        </label>
+        <label class="field prompt-field"><span>Extra instruction <small>(optional)</small></span>
+          <textarea id="extra-prompt" rows="2" maxlength="400" placeholder="For example: keep the man's glasses clearly visible"></textarea>
+        </label>
+      </div>
+
+      <details class="connection-settings" id="connection-settings">
+        <summary>Cloudflare Worker connection</summary>
+        <p class="settings-note">Enter the Worker URL and access code supplied by the person who deployed the test Worker. They stay in this browser only.</p>
+        <label class="field"><span>Worker URL</span><input id="worker-url" type="url" inputmode="url" placeholder="https://your-worker.your-subdomain.workers.dev" autocomplete="url"></label>
+        <label class="field"><span>Access code</span><input id="access-key" type="password" autocomplete="off" placeholder="Shared app access code"></label>
+        <div class="settings-actions"><button class="button button-secondary" id="save-settings" type="button">Save connection</button><button class="text-button" id="check-connection" type="button">Check connection</button></div>
+        <p class="connection-status" id="connection-status" role="status" aria-live="polite"></p>
+      </details>
+
+      <div class="privacy-box">
+        <label class="consent-label"><input id="photo-consent" type="checkbox"><span><strong>This photo will be sent to Cloudflare.</strong> The Worker forwards it to FLUX.2 Klein 4B to make the drawing. Cloudflare labels the model zero-data-retention, but the photo does leave this device.</span></label>
+      </div>
+      <button class="button button-primary" id="generate-button" type="button" disabled><span>Generate drawing</span><span class="button-arrow" aria-hidden="true">↗</span></button>
+      <div class="status-line" id="generation-status" role="status" aria-live="polite">Choose a photo to begin.</div>
+      <p class="quota-note">Generation needs an internet connection. Cloudflare currently includes 10,000 free Workers AI Neurons per day; available generations depend on output size and other account use.</p>
+      <button class="button button-secondary download-button" id="download-button" type="button" hidden>Save drawing as PNG</button>
+    </section>
+
+    <section class="note-card">
+      <span class="note-icon" aria-hidden="true">✳</span>
+      <p><strong>What to look for</strong><br>Does the result keep each person, their interaction, facial features, glasses, hair and clothing? This model generates an interpretation, so it may change photographic details. Compare several photos before deciding if it suits embroidery patterns.</p>
+    </section>
+  </main>
+  <footer><span>STITCHSKETCH · MODEL EVALUATION</span><a href="./README.md">Setup guide</a></footer>
+  <script src="./app.js" defer></script>
+</body>
+</html>

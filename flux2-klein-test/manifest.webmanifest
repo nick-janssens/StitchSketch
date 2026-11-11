@@ -1,0 +1,10 @@
+{
+  "name": "StitchSketch · FLUX.2 Klein test",
+  "short_name": "StitchSketch AI",
+  "description": "Test FLUX.2 Klein 4B for embroidery-style portrait drawings.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f7f5ef",
+  "theme_color": "#f7f5ef"
+}
