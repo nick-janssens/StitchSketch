@@ -13,6 +13,7 @@
     download: $('download-button'), outputSize: $('output-size'), extraPrompt: $('extra-prompt')
   };
   const SETTINGS_KEY = 'stitchsketch-flux-worker-settings-v1';
+  const DEFAULT_WORKER_URL = 'https://old-morning-4019.janssens-nick.workers.dev';
 
   function setStatus(message, kind = '') {
     elements.status.textContent = message;
@@ -50,7 +51,7 @@
   function readSettings() {
     try {
       const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
-      if (saved.url) elements.workerUrl.value = saved.url;
+      elements.workerUrl.value = saved.url || DEFAULT_WORKER_URL;
       if (saved.key) elements.accessKey.value = saved.key;
     } catch (_) {
       localStorage.removeItem(SETTINGS_KEY);

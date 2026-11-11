@@ -1,4 +1,4 @@
-const CACHE_NAME = 'stitchsketch-flux-shell-v1';
+const CACHE_NAME = 'stitchsketch-flux-shell-v2';
 const BASE = new URL('./', self.location.href);
 const APP_FILES = [
   new URL('./', self.location.href).href,

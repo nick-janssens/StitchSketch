@@ -27,7 +27,7 @@ Cloudflare's official guides: [Workers AI from the dashboard](https://developers
 1. Open `flux2-klein-test` in File Explorer.
 2. Double-click `run-test.cmd`. A PowerShell window will serve only this folder at `http://127.0.0.1:8766/`. The script does not install anything or change Windows settings.
 3. Open `http://127.0.0.1:8766/` in Chrome.
-4. Expand **Cloudflare Worker connection**. Paste the Worker URL and the `APP_ACCESS_KEY` you created, then choose **Save connection**. The URL and code are saved in this browser's local storage.
+4. Expand **Cloudflare Worker connection**. The Worker URL is prefilled. Enter the `APP_ACCESS_KEY` you created, then choose **Save connection**. The URL and code are saved in this browser's local storage, so it should only be necessary once on that device/browser.
 5. Choose a photo, select output size, and optionally add one short instruction (for example, “keep the man's glasses clearly visible”). Check the photo-upload notice and choose **Generate drawing**.
 6. Compare the original and FLUX result side by side. Select **Save drawing as PNG** to download it.
 7. To stop the local server, focus its PowerShell window and press **Ctrl+C**.
@@ -38,7 +38,7 @@ The local page must be served over HTTP rather than opened by double-clicking `i
 
 1. Upload the **contents** of this folder to your GitHub repository, preserving the folder name `flux2-klein-test`. Do not upload any access code or secret.
 2. With the existing GitHub Pages site at `https://nick-janssens.github.io/StitchSketch/`, the app will be at `https://nick-janssens.github.io/StitchSketch/flux2-klein-test/` after Pages finishes publishing.
-3. Open that HTTPS URL in Safari on the iPhone, set the Worker URL and access code, choose **Save connection**, then use **Share → Add to Home Screen**.
+3. Open that HTTPS URL in Safari on the iPhone, enter the access code, choose **Save connection**, then use **Share → Add to Home Screen**. Open the installed app and save the code there too if the iPhone keeps separate website storage for the Safari tab and home-screen app.
 4. The app shell can open offline after it has been loaded once, but generating a drawing still needs the internet and the Cloudflare Worker.
 
 If you use a different Pages account/site, add its exact origin (scheme and hostname, without a path) to the Worker `ALLOWED_ORIGINS` variable and deploy again.
