@@ -7,8 +7,8 @@ const DEFAULT_ORIGINS = [
 const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
 const BASE_PROMPT = [
   'Create a refined minimalist hand-drawn contour illustration based faithfully on the reference photograph, as a professional custom portrait prepared for hand embroidery.',
-  'Preserve the exact number of people, their identities as recognisable from the photo, relative positions, pose, interaction, facial expressions, glasses, hairstyles, hair silhouettes, clothing silhouettes, hands and body proportions.',
-  'Draw only intentional, smooth, clean, continuous black contour lines on a pure white background. Keep the whole composition and both subjects visible.',
+  'Preserve the exact number of visible people, whether one person or several, their recognisable appearance, relative positions, pose, interaction, facial expressions, hairstyles, hair silhouettes, clothing, hands and body proportions. Preserve accessories such as glasses only when they are present in the photograph.',
+  'Draw only intentional, smooth, clean, continuous black contour lines on a pure white background. Keep every person and the complete original composition visible.',
   'Use a restrained number of elegant lines: preserve the outer silhouettes, important face profiles and features, characteristic hair outlines, clothing boundaries and meaningful overlaps. Simplify detail so paths remain clear and stitchable at 10 to 20 centimetres.',
   'Do not add people, objects, text, borders or background scenery. No color, shading, gray, gradients, shadows, texture, hatching, sketch marks, tiny isolated strokes, dense hair fill or photographic detail. Do not crop, rearrange or invent facial features.'
 ].join(' ');
@@ -105,11 +105,9 @@ async function generate(request, env, headers) {
   const height = validateDimensions(incoming.get('height'), 'height');
   const requestedMax = Number(incoming.get('maxDimension'));
   if (![512, 768, 1024].includes(requestedMax) || Math.max(width, height) > 1920) throw fail('Choose a supported output size: 512, 768 or 1024 pixels.');
-  const extra = String(incoming.get('extraPrompt') || '').trim().slice(0, 400);
-  const prompt = extra ? `${BASE_PROMPT} Additional instruction: ${extra}` : BASE_PROMPT;
 
   const modelInput = new FormData();
-  modelInput.append('prompt', prompt);
+  modelInput.append('prompt', BASE_PROMPT);
   modelInput.append('input_image_0', new Blob([imageBytes], { type: 'image/jpeg' }), 'reference.jpg');
   modelInput.append('width', String(width));
   modelInput.append('height', String(height));

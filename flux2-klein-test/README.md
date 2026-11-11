@@ -28,7 +28,7 @@ Cloudflare's official guides: [Workers AI from the dashboard](https://developers
 2. Double-click `run-test.cmd`. A PowerShell window will serve only this folder at `http://127.0.0.1:8766/`. The script does not install anything or change Windows settings.
 3. Open `http://127.0.0.1:8766/` in Chrome.
 4. Expand **Cloudflare Worker connection**. The Worker URL is prefilled. Enter the `APP_ACCESS_KEY` you created, then choose **Save connection**. The URL and code are saved in this browser's local storage, so it should only be necessary once on that device/browser.
-5. Choose a photo, select output size, and optionally add one short instruction (for example, “keep the man's glasses clearly visible”). Check the photo-upload notice and choose **Generate drawing**.
+5. Choose a photo and output size. The app supplies its embroidery-style prompt automatically; no prompt entry is needed. Check the photo-upload notice and choose **Generate drawing**.
 6. Compare the original and FLUX result side by side. Select **Save drawing as PNG** to download it.
 7. To stop the local server, focus its PowerShell window and press **Ctrl+C**.
 
@@ -47,7 +47,7 @@ If you use a different Pages account/site, add its exact origin (scheme and host
 
 - Keeps the full photo framing and aspect ratio when preparing the reference: the browser scales it down proportionally, never stretches it, and sends an image smaller than 512 × 512 as required by this model endpoint.
 - Requests an output size of 512, 768 or 1024 px on the longest side and calculates the other dimension from the original aspect ratio. Model dimensions are rounded to multiples of 16. Exceptionally panoramic/tall photos may be enlarged slightly to meet the model's 256 px minimum dimension while keeping their proportions.
-- Uses a fixed embroidery-focused prompt intended to preserve people, pose, interaction, glasses, hair and clothing, while asking for sparse black contours on white. The optional extra instruction is appended to that prompt.
+- Supplies a fixed embroidery-focused prompt automatically. It preserves the photo's exact number of people (one or more), pose, interaction and visible features; glasses are mentioned only as an accessory to retain when present. No user prompt is required.
 - Shows total time from local image preparation through result download, reports the returned size, and downloads the generated PNG.
 - Keeps the existing Informative Drawings model test available in its original folder; this app does not modify or replace it.
 
