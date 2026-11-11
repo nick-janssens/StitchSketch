@@ -6,11 +6,10 @@ const DEFAULT_ORIGINS = [
 ];
 const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
 const BASE_PROMPT = [
-  'Turn the supplied photograph into a faithful, minimalist hand-drawn contour portrait designed as a practical hand-embroidery pattern. Treat the photo as the source of truth and simplify its forms rather than redesigning the scene.',
-  'Keep the exact number of visible people, whether one person or several, and preserve their recognizable appearance, relative positions, framing, pose, interaction and expression. Retain clearly visible features, hairstyles, clothing, hands and body silhouettes. Include glasses or other accessories only when they are visibly present in the photo; do not invent details that cannot be seen.',
-  'Keep all people and their meaningful contact points in the composition. Show only a little background, preferably none. Do not add or remove people or objects, crop or rearrange the subjects, or invent facial features, clothing or body parts.',
-  'Draw on a pure white background using clean, smooth, flowing black contours with consistent line weight. Use a small, deliberate set of mostly long connected curves: prioritize each person’s outer silhouette, essential face profile and visible eyes, nose and mouth, hair outline with only a few characteristic strands, major clothing edges, and important overlaps between people.',
-  'Keep lines separated and easy to follow at a finished embroidery size of about 10 to 20 centimetres. Draw each important visual boundary once. If glasses are visible, represent each lens with one simple outline and at most a short bridge; never add inner and outer double rims, duplicate parallel strokes, lens reflections or tiny hinge details. Omit surface texture, photographic edges, shadows, shading, gray, gradients, color, fills, hatching, tiny isolated marks, dense parallel hair lines and minor folds or background detail.'
+  'Create an elegant ultra-minimalist line drawing for hand embroidery. Use the fewest lines possible. Every line must meaningfully help someone recognize the people; omit any line that does not.',
+  'Faithfully preserve the exact number of people, their recognizable identities, composition, framing, silhouettes, face and hair shapes, poses, expressions, and interactions. Do not crop, rearrange, add, remove, or alter people or expressions.',
+  'Draw only a few long, smooth, flowing, mostly connected black strokes of uniform thickness on pure white. Keep essential outer contours and only the minimum distinctive facial features, hairstyle shapes, and clothing contours needed for recognition. Include visible glasses only when needed for recognition; draw each lens with a single simple outline and no doubled rims.',
+  'Leave large areas of white space. Omit the background entirely, along with individual hair strands, clothing texture, folds, seams, patterns, small facial details, shadows, lighting, gradients, gray, color, fills, shading, hatching, and decorative or unnecessary interior lines. The result should look delicate and hand-drawn, not like a detailed sketch.'
 ].join(' ');
 
 function originList(env) {
