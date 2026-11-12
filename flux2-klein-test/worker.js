@@ -1,4 +1,8 @@
-const MODEL = '@cf/black-forest-labs/flux-2-klein-4b';
+const DEFAULT_MODEL = '@cf/black-forest-labs/flux-2-klein-4b';
+const ALLOWED_MODELS = new Set([
+  DEFAULT_MODEL,
+  '@cf/black-forest-labs/flux-2-klein-9b'
+]);
 const DEFAULT_ORIGINS = [
   'https://nick-janssens.github.io',
   'http://127.0.0.1:8766',
@@ -104,6 +108,8 @@ async function generate(request, env, headers) {
   const height = validateDimensions(incoming.get('height'), 'height');
   const requestedMax = Number(incoming.get('maxDimension'));
   if (![512, 768, 1024].includes(requestedMax) || Math.max(width, height) > 1920) throw fail('Choose a supported output size: 512, 768 or 1024 pixels.');
+  const selectedModel = String(incoming.get('model') || DEFAULT_MODEL);
+  if (!ALLOWED_MODELS.has(selectedModel)) throw fail('Choose a supported model: FLUX.2 Klein 4B or Klein 9B.');
 
   const modelInput = new FormData();
   const extra = String(incoming.get('extraPrompt') || '').trim().slice(0, 400);
@@ -113,7 +119,7 @@ async function generate(request, env, headers) {
   modelInput.append('width', String(width));
   modelInput.append('height', String(height));
   const serialized = new Response(modelInput);
-  const output = await env.AI.run(MODEL, {
+  const output = await env.AI.run(selectedModel, {
     multipart: {
       body: serialized.body,
       contentType: serialized.headers.get('content-type')
@@ -133,7 +139,7 @@ async function generate(request, env, headers) {
   headers.set('Content-Type', 'image/png');
   headers.set('Content-Length', String(png.byteLength));
   headers.set('Cache-Control', 'no-store');
-  headers.set('X-Model', MODEL);
+  headers.set('X-Model', selectedModel);
   return new Response(png, { status: 200, headers });
 }
 
@@ -150,7 +156,7 @@ export default {
     }
     if (url.pathname === '/health' && request.method === 'GET') {
       if (!authorized(request, env)) return jsonResponse(request, env, { error: 'Access code is missing or incorrect.' }, 401);
-      return jsonResponse(request, env, { ok: true, model: MODEL });
+      return jsonResponse(request, env, { ok: true, model: DEFAULT_MODEL, models: [...ALLOWED_MODELS] });
     }
     if (url.pathname !== '/generate') return jsonResponse(request, env, { error: 'Use /health or /generate.' }, 404);
     if (request.method !== 'POST') return jsonResponse(request, env, { error: 'Use POST to generate an image.' }, 405);

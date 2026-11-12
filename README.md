@@ -1,43 +1,48 @@
-﻿# StitchSketch
+# StitchSketch
 
-A browser-only portrait outline maker. Photo processing happens locally in Canvas; no photos are uploaded or sent to an external API.
+A mobile-first portrait-to-embroidery drawing PWA. Choose between AI-generated line art using Cloudflare Workers AI and the original on-device line-drawing pipeline.
 
 ## Publish from the GitHub website
 
 1. Open the StitchSketch repository in GitHub.
-2. Choose **Add file → Upload files**.
-3. From this folder, upload the project files and preserve their folders:
-   - index.html, manifest.webmanifest, service-worker.js, .nojekyll
-   - styles/app.css
-   - all six files in scripts/
-   - assets/icons/stitchsketch.svg
-   - all files in assets/mediapipe/ (about 19 MB: models, runtime and license)
-4. Commit the upload to the main branch.
-5. Open **Settings → Pages**. Under **Build and deployment**, choose **Deploy from a branch**, select main and /(root), then save.
-6. Wait for the Pages deployment to finish. The site address is shown in **Settings → Pages**. Open it once in Safari on your iPhone while online.
+2. Upload the project files and preserve their folders: `index.html`, `manifest.webmanifest`, `service-worker.js`, `.nojekyll`, all files in `styles/` and `scripts/`, `assets/icons/`, and `assets/mediapipe/`.
+3. Commit the upload to the `main` branch. In **Settings → Pages**, choose **Deploy from a branch**, select `main` and `/(root)`, then save.
+4. Wait for Pages to publish. The site address appears in **Settings → Pages**. Open it in Safari on the iPhone while online.
 
-If GitHub's upload screen does not preserve folders when dropping them, upload each folder's files separately using **Add file → Upload files**, or create the same paths with **Add file → Create new file**.
+## Use the app
 
-## Install on iPhone and save a drawing
+1. Install it from Safari with **Share → Add to Home Screen**.
+2. Choose a photo and adjust its crop.
+3. Choose a model: **FLUX.2 Klein 4B** is the default, **Klein 9B** is available for comparison, and **On-device line drawing** stays local. FLUX output is always 512 × 512. The optional extra-instructions box appears only for the FLUX models. Review the upload notice, check the consent box, and tap **Generate AI drawing** to send the cropped photo to your Cloudflare Worker.
+4. The access code is reused from the standalone FLUX test when it was saved in the same browser and site origin. Otherwise, enter it once under **AI access code**. The code is stored in this browser's local storage.
+5. Choose **On-device line drawing** to use the previous local pipeline instead. That mode keeps the image on the device and works offline after the PWA and its local models have been cached. Its style, detail, strength and background controls apply only to this mode.
+6. **Save drawing to Photos** opens the iOS share sheet; choose **Save Image**.
 
-1. In Safari, open the published HTTPS site.
-2. Tap **Share → Add to Home Screen → Add**.
-3. Open StitchSketch from its Home Screen icon while online. The first visit downloads and caches the app, portrait segmentation model and face-landmark model (about 19 MB total) for offline use.
-4. Choose a portrait. Adjust zoom and framing, then tune Detail and Line strength.
-5. Tap **Save drawing to Photos**. In the iOS share sheet, choose **Save Image**. If Safari downloads the PNG instead, open the download and use **Share → Save Image**.
+The AI photo transfer is opt-in and happens only after consent and an explicit Generate tap. The local mode does not send photos anywhere. The AI modes do not work offline.
 
-Background removal and facial landmarks use bundled MediaPipe models locally in the browser. Face landmarks guide the face, eye, eyebrow and lip contours. The app converts selected photo contours into simplified, smoothed paths; this reduces photographic texture but cannot reproduce an artist's judgment for every image. Models and runtime are cached for offline use after the updated app assets are downloaded.
+## AI models and quota
 
-The app creates a 600 by 600 pixel PNG. The crop is square. The photo and generated drawing remain in the browser unless you choose to save/share them. For best results, use a clear portrait with visible contrast.
+- **FLUX.2 Klein 4B** is the default AI model. It is the lower-cost, faster option.
+- **FLUX.2 Klein 9B** is included for comparison. Cloudflare describes it as improved in quality over 4B, but the actual embroidery result needs to be judged on your photos. Its published pricing is metered by megapixels and is much higher than 4B. The main app always requests 512 × 512 to keep costs down. The current Workers AI Free allocation is 10,000 Neurons per day; on the Free plan requests stop when the allocation is exhausted, while Paid-plan usage beyond the free allocation is billed.
+- The existing **On-device line drawing** is still available and is the offline/private option.
+
+Cloudflare model details: [FLUX.2 Klein 4B](https://developers.cloudflare.com/workers-ai/models/flux-2-klein-4b/), [FLUX.2 Klein 9B](https://developers.cloudflare.com/workers-ai/models/flux-2-klein-9b/), [Workers AI pricing and free allocation](https://developers.cloudflare.com/workers-ai/platform/pricing/).
+
+## Deploy the Worker update
+
+The app calls the Worker at `old-morning-4019.janssens-nick.workers.dev`. Deploy the updated `flux2-klein-test/worker.js` to that existing Cloudflare Worker. The Worker keeps 4B as its default and allowlists Klein 9B for the model selector. The GitHub Pages origin `https://nick-janssens.github.io` must remain in `DEFAULT_ORIGINS` or `ALLOWED_ORIGINS`.
+
+## Local processing files
+
+The on-device option uses bundled MediaPipe person and face models locally in the browser. The app shell and model files are cached for offline use after the first online load (about 19 MB). Its output is a 600 × 600 PNG. The main app requests a fixed 512 × 512 image from FLUX.
 
 ## Files
 
-- index.html: app interface and PWA metadata
-- styles/app.css: responsive layout and styling
-- scripts/image-processing.js and scripts/image-processing-worker.js: crop and outline conversion
-- scripts/segmentation.js and scripts/face-landmarks.js: local foreground mask and facial feature paths
-- scripts/export.js: PNG preparation and iOS share/download
-- scripts/app.js: user interface behavior
-- manifest.webmanifest and service-worker.js: installation and offline cache
-- assets/icons/stitchsketch.svg: app icon
-- assets/mediapipe/: local person and face models, WebAssembly runtime and license
+- `index.html`: app interface, AI consent and PWA metadata
+- `styles/app.css`: responsive layout
+- `scripts/app.js`: model selection, local and AI generation flows
+- `scripts/image-processing.js` and `scripts/image-processing-worker.js`: crop and on-device outline conversion
+- `scripts/segmentation.js` and `scripts/face-landmarks.js`: local foreground mask and facial feature paths
+- `scripts/export.js`: PNG preparation and iOS share/download
+- `manifest.webmanifest` and `service-worker.js`: installation and offline cache
+- `assets/mediapipe/`: local segmentation and face models, WebAssembly runtime and license
