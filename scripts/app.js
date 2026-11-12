@@ -1,6 +1,4 @@
-import {createCroppedCanvas, drawOutline, drawOriginal} from './image-processing.js';
-import {segmentPerson} from './segmentation.js';
-import {detectFacePaths} from './face-landmarks.js';
+import {createCroppedCanvas, drawOriginal} from './image-processing.js';
 import {saveDrawing} from './export.js';
 
 const $ = selector => document.querySelector(selector);
@@ -8,23 +6,15 @@ const input = $('#photo-input'), canvas = $('#result-canvas'), originalCanvas = 
 const comparison = $('#comparison'), empty = $('#empty-state'), busy = $('#busy');
 const busyLabel = busy.querySelector('span:last-child'), status = $('#preview-status');
 const save = $('#save-button'), reset = $('#reset-button'), toast = $('#toast');
-const removeBackground = $('#remove-background'), styleSelect = $('#drawing-style');
-const modelSelect = $('#model-select'), modelNote = $('#model-note');
-const aiOptions = $('#ai-options'), localOptions = $('#local-options');
-const aiConsent = $('#ai-consent'), aiExtraInstructions = $('#ai-extra-instructions');
-const aiGenerate = $('#generate-button'), aiAccessCode = $('#ai-access-code');
-const aiConnection = $('#ai-connection'), aiConnectionStatus = $('#ai-connection-status');
-const privacyStatus = $('#privacy-status').querySelector('span');
+const aiGenerate = $('#generate-button'), aiExtraInstructions = $('#ai-extra-instructions');
+const aiAccessCode = $('#ai-access-code'), aiConnection = $('#ai-connection');
+const aiConnectionStatus = $('#ai-connection-status');
 const photoPrivacyNote = $('#photo-privacy-note');
-const controls = {detail: $('#detail'), strength: $('#strength'), zoom: $('#zoom'), x: $('#pan-x'), y: $('#pan-y')};
+const controls = {zoom: $('#zoom'), x: $('#pan-x'), y: $('#pan-y')};
 const saveLabel = save.querySelector('span');
 const AI_WORKER_URL = 'https://old-morning-4019.janssens-nick.workers.dev';
 const AI_SETTINGS_KEY = 'stitchsketch-flux-worker-settings-v1';
-const MODEL_IDS = {
-  flux4b: '@cf/black-forest-labs/flux-2-klein-4b',
-  flux9b: '@cf/black-forest-labs/flux-2-klein-9b'
-};
-let image = null, timer = 0, toastTimer = 0, renderId = 0, analysisCache = null;
+let image = null, toastTimer = 0, renderId = 0;
 let aiBusy = false, activeRequest = null, hasResult = false;
 
 function message(text) {
@@ -39,14 +29,6 @@ function updateOutputs() {
     const output = document.querySelector('output[for="' + element.id + '"]');
     if (output) output.value = element.id === 'zoom' ? element.value + '%' : element.value;
   }
-}
-
-function isRemoteModel() {
-  return modelSelect.value !== 'local';
-}
-
-function selectedModelId() {
-  return MODEL_IDS[modelSelect.value] || MODEL_IDS.flux4b;
 }
 
 function readSavedSettings() {
@@ -93,30 +75,14 @@ function saveAISettings() {
 }
 
 function refreshButtons() {
-  aiGenerate.disabled = !image || !image.naturalWidth || !aiConsent.checked || aiBusy;
+  aiGenerate.disabled = !image || !image.naturalWidth || aiBusy;
   save.disabled = !hasResult || aiBusy;
 }
+
 function cancelRemoteRequest() {
   activeRequest?.abort();
   activeRequest = null;
   aiBusy = false;
-  modelSelect.disabled = false;
-  aiConsent.disabled = false;
-}
-
-function setPrivacyCopy() {
-  const remote = isRemoteModel();
-  if (!remote) {
-    privacyStatus.textContent = 'On-device · works offline';
-    photoPrivacyNote.textContent = 'Photos stay on this device';
-    modelNote.textContent = 'The existing line-drawing pipeline runs locally and works offline after the app is cached. Detail, line strength and background removal apply in this mode.';
-    return;
-  }
-  privacyStatus.textContent = 'AI drawing · internet required';
-  photoPrivacyNote.textContent = 'AI sends the cropped photo to Cloudflare after consent';
-  modelNote.textContent = modelSelect.value === 'flux9b'
-    ? 'Experimental comparison: Cloudflare describes Klein 9B as higher quality than 4B. Output is fixed at 512 × 512; 9B uses much more quota, and paid-plan usage beyond the free allowance can be billed.'
-    : 'FLUX.2 Klein 4B is the default AI option. Output is fixed at 512 × 512. The cropped photo is sent to Cloudflare only after you agree and choose Generate.';
 }
 
 function clearResult() {
@@ -129,94 +95,16 @@ function clearResult() {
   refreshButtons();
 }
 
-function getAnalysis(source, cropKey, includeMask) {
-  if (!analysisCache || analysisCache.key !== cropKey) {
-    analysisCache = {key: cropKey, mask: null, faceData: null, maskPromise: null, facePromise: null};
-  }
-  const entry = analysisCache;
-  const jobs = [];
-  if (!entry.faceData && !entry.facePromise) {
-    entry.facePromise = detectFacePaths(source)
-      .then(data => { entry.faceData = data; })
-      .catch(error => {
-        entry.faceError = error;
-        entry.faceData = {paths: [], regions: []};
-      })
-      .finally(() => { entry.facePromise = null; });
-  }
-  if (!entry.faceData) jobs.push(entry.facePromise);
-  if (includeMask && !entry.mask && !entry.maskPromise) {
-    entry.maskPromise = segmentPerson(source)
-      .then(mask => { entry.mask = mask; })
-      .finally(() => { entry.maskPromise = null; });
-  }
-  if (includeMask && !entry.mask) jobs.push(entry.maskPromise);
-  return Promise.all(jobs).then(() => entry);
-}
-
-function showRemotePreview() {
-  if (!image) return;
+function showCropPreview() {
+  if (!image || !image.naturalWidth) return;
   const crop = {zoom: +controls.zoom.value, x: +controls.x.value, y: +controls.y.value};
   const source = createCroppedCanvas(image, crop);
   drawOriginal(source, originalCanvas);
   clearResult();
   busy.hidden = true;
-  if (!aiConsent.checked) {
-    status.textContent = 'Review the upload notice, then agree to generate with AI.';
-  } else {
-    status.textContent = 'Framing ready · choose Generate AI drawing.';
-  }
+  status.textContent = 'Framing ready · choose Generate drawing';
   saveLabel.textContent = 'Save drawing to Photos';
   refreshButtons();
-}
-
-async function redraw() {
-  if (!image) return;
-  clearTimeout(timer);
-  const currentRender = ++renderId;
-  if (isRemoteModel()) {
-    showRemotePreview();
-    return;
-  }
-  busy.hidden = false;
-  save.disabled = true;
-  hasResult = false;
-  saveLabel.textContent = 'Preparing drawing…';
-  status.textContent = 'Tracing portrait contours…';
-  busyLabel.textContent = 'Finding face features and smoothing contours…';
-  timer = setTimeout(async () => {
-    try {
-      const crop = {zoom: +controls.zoom.value, x: +controls.x.value, y: +controls.y.value};
-      const source = createCroppedCanvas(image, crop);
-      drawOriginal(source, originalCanvas);
-      const cropKey = [crop.zoom, crop.x, crop.y].join(':');
-      const analysis = await getAnalysis(source, cropKey, removeBackground.checked);
-      if (currentRender !== renderId) return;
-      await drawOutline(source, canvas, {
-        detail: +controls.detail.value,
-        strength: +controls.strength.value,
-        style: styleSelect.value
-      }, analysis.mask, analysis.faceData);
-      if (currentRender !== renderId) return;
-      busy.hidden = true;
-      hasResult = true;
-      save.disabled = false;
-      saveLabel.textContent = 'Save drawing to Photos';
-      status.textContent = 'Preview ready · on-device';
-      if (analysis.faceError && !analysis.faceWarningShown) {
-        analysis.faceWarningShown = true;
-        message('Face guidance could not load. The drawing uses smoothed contours instead.');
-      }
-    } catch (error) {
-      if (error.name === 'AbortError') return;
-      if (currentRender === renderId) {
-        busy.hidden = true;
-        status.textContent = 'Could not make a preview';
-        saveLabel.textContent = 'Try another photo';
-        message(error.message || 'Could not draw this image.');
-      }
-    }
-  }, 100);
 }
 
 function prepareAIReference(source) {
@@ -261,11 +149,7 @@ async function responseError(response) {
 }
 
 async function generateAI() {
-  if (!image || aiBusy) return;
-  if (!aiConsent.checked) {
-    message('Agree to the photo upload notice before generating with AI.');
-    return;
-  }
+  if (!image || !image.naturalWidth || aiBusy) return;
   const key = aiAccessCode.value.trim() || savedAccessCode();
   if (!key) {
     aiConnection.open = true;
@@ -281,13 +165,11 @@ async function generateAI() {
   clearResult();
   aiBusy = true;
   refreshButtons();
-  modelSelect.disabled = true;
-  aiConsent.disabled = true;
   for (const keyName of ['zoom', 'x', 'y']) controls[keyName].disabled = true;
   $('#crop-controls').setAttribute('aria-disabled', 'true');
   busy.hidden = false;
   busyLabel.textContent = 'Preparing the crop and generating with Cloudflare AI…';
-  status.textContent = `Generating with FLUX.2 Klein ${modelSelect.value === 'flux9b' ? '9B' : '4B'}…`;
+  status.textContent = 'Generating with FLUX.2 Klein 4B…';
   saveLabel.textContent = 'Preparing drawing…';
   const startedAt = performance.now();
 
@@ -303,22 +185,6 @@ async function generateAI() {
     form.append('height', '512');
     form.append('maxDimension', '512');
     form.append('extraPrompt', aiExtraInstructions.value.trim().slice(0, 400));
-    const modelId = selectedModelId();
-    form.append('model', modelId);
-    if (modelId === MODEL_IDS.flux9b) {
-      const healthResponse = await fetch(`${AI_WORKER_URL}/health`, {
-        headers: {Authorization: `Bearer ${key}`},
-        signal: controller.signal
-      });
-      if (!healthResponse.ok) throw new Error(await responseError(healthResponse));
-      if (!(healthResponse.headers.get('content-type') || '').includes('application/json')) {
-        throw new Error('Could not verify Klein 9B support. Check the internet connection and deploy the updated Worker.');
-      }
-      const health = await healthResponse.json();
-      if (!Array.isArray(health.models) || !health.models.includes(modelId)) {
-        throw new Error('Klein 9B is not enabled on the deployed Worker yet. Deploy the updated flux2-klein-test/worker.js, then try again.');
-      }
-    }
     const response = await fetch(`${AI_WORKER_URL}/generate`, {
       method: 'POST',
       headers: {Authorization: `Bearer ${key}`},
@@ -338,7 +204,7 @@ async function generateAI() {
     context.drawImage(result, 0, 0);
     hasResult = true;
     const seconds = ((performance.now() - startedAt) / 1000).toFixed(1);
-    status.textContent = `Preview ready · FLUX.2 Klein ${modelSelect.value === 'flux9b' ? '9B' : '4B'} · ${seconds}s`;
+    status.textContent = `Preview ready · FLUX.2 Klein 4B · ${seconds}s`;
     saveLabel.textContent = 'Save drawing to Photos';
   } catch (error) {
     if (error.name !== 'AbortError' && currentRender === renderId) {
@@ -351,8 +217,6 @@ async function generateAI() {
     if (currentRender === renderId) {
       aiBusy = false;
       busy.hidden = true;
-      modelSelect.disabled = false;
-          aiConsent.disabled = false;
       for (const keyName of ['zoom', 'x', 'y']) controls[keyName].disabled = !image;
       $('#crop-controls').setAttribute('aria-disabled', image ? 'false' : 'true');
       refreshButtons();
@@ -363,23 +227,10 @@ async function generateAI() {
 function setReady() {
   empty.hidden = true;
   comparison.hidden = false;
-  save.disabled = true;
-  hasResult = false;
-  saveLabel.textContent = 'Preparing drawing…';
   reset.disabled = false;
-  status.textContent = 'Preparing preview…';
   for (const key of ['zoom', 'x', 'y']) controls[key].disabled = false;
   $('#crop-controls').setAttribute('aria-disabled', 'false');
-  redraw();
-}
-
-function updateModelUI() {
-  const remote = isRemoteModel();
-  aiOptions.hidden = !remote;
-  localOptions.hidden = remote;
-  setPrivacyCopy();
-  if (image) redraw();
-  refreshButtons();
+  showCropPreview();
 }
 
 input.addEventListener('change', () => {
@@ -389,13 +240,11 @@ input.addEventListener('change', () => {
     message('Please choose an image file.');
     return;
   }
-  clearTimeout(timer);
   renderId++;
   cancelRemoteRequest();
   for (const keyName of ['zoom', 'x', 'y']) controls[keyName].disabled = true;
-  $( '#crop-controls' ).setAttribute('aria-disabled', 'true');
+  $('#crop-controls').setAttribute('aria-disabled', 'true');
   if (image) URL.revokeObjectURL(image.src);
-  analysisCache = null;
   clearResult();
   comparison.hidden = true;
   empty.hidden = false;
@@ -413,23 +262,19 @@ input.addEventListener('change', () => {
     updateOutputs();
     setReady();
   };
-  nextImage.onerror = () => { status.textContent = 'Could not open photo'; message('This photo could not be opened. Try a JPG or PNG copy.'); };
+  nextImage.onerror = () => {
+    status.textContent = 'Could not open photo';
+    message('This photo could not be opened. Try a JPG or PNG copy.');
+  };
   nextImage.src = URL.createObjectURL(file);
 });
 
 for (const element of Object.values(controls)) {
   element.addEventListener('input', () => {
     updateOutputs();
-    redraw();
+    showCropPreview();
   });
 }
-styleSelect.addEventListener('change', redraw);
-removeBackground.addEventListener('change', redraw);
-modelSelect.addEventListener('change', updateModelUI);
-aiConsent.addEventListener('change', () => {
-  if (image && isRemoteModel()) showRemotePreview();
-  refreshButtons();
-});
 
 $('#save-ai-settings').addEventListener('click', saveAISettings);
 aiAccessCode.addEventListener('input', () => {
@@ -448,12 +293,10 @@ save.addEventListener('click', async () => {
 });
 
 reset.addEventListener('click', () => {
-  clearTimeout(timer);
   renderId++;
   cancelRemoteRequest();
   if (image) URL.revokeObjectURL(image.src);
   image = null;
-  analysisCache = null;
   input.value = '';
   $('#upload-label').textContent = 'Choose a photo';
   comparison.hidden = true;
@@ -468,11 +311,8 @@ reset.addEventListener('click', () => {
   refreshButtons();
 });
 
-$('#photo-input').addEventListener('change', () => refreshButtons());
-$('#save-ai-settings').addEventListener('click', () => refreshButtons());
 updateOutputs();
 loadAISettings();
-updateModelUI();
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
   window.addEventListener('load', () => navigator.serviceWorker.register(new URL('../service-worker.js', import.meta.url)).catch(() => {}));
 }

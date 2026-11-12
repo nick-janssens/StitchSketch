@@ -2,19 +2,19 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#f7f5ef"><meta http-equiv="Content-Security-Policy" content="connect-src 'self' https://old-morning-4019.janssens-nick.workers.dev"><meta name="description" content="Turn a portrait into an embroidery-ready line drawing with local or AI-assisted processing.">
+<meta name="theme-color" content="#f7f5ef"><meta http-equiv="Content-Security-Policy" content="connect-src 'self' https://old-morning-4019.janssens-nick.workers.dev"><meta name="description" content="Turn a portrait into an embroidery-ready line drawing with FLUX.2 Klein 4B.">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="StitchSketch">
 <link rel="manifest" href="./manifest.webmanifest"><link rel="icon" href="./assets/icons/stitchsketch.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="./assets/icons/stitchsketch.svg"><link rel="stylesheet" href="./styles/app.css">
 <title>StitchSketch — Portrait to outline</title>
 </head>
 <body>
 <main class="app-shell">
-<header class="topbar"><a class="brand" href="./" aria-label="StitchSketch home"><span class="brand-mark">S</span><span>StitchSketch</span></a><span class="privacy" id="privacy-status"><i></i><span>AI by default · internet required</span></span></header>
-<section class="intro"><p class="eyebrow">A little thread of inspiration</p><h1>Make a portrait<br>ready for <em>stitching.</em></h1><p class="intro-copy">Choose AI-assisted drawing for a more illustrative result, or use the on-device line drawing for private, offline processing.</p></section>
+<header class="topbar"><a class="brand" href="./" aria-label="StitchSketch home"><span class="brand-mark">S</span><span>StitchSketch</span></a><span class="privacy" id="privacy-status"><i></i><span>FLUX.2 Klein 4B · internet required</span></span></header>
+<section class="intro"><p class="eyebrow">A little thread of inspiration</p><h1>Make a portrait<br>ready for <em>stitching.</em></h1><p class="intro-copy">Turn a favorite photo into a simple embroidery-style drawing. Generation uses FLUX.2 Klein 4B through Cloudflare.</p></section>
 <section class="workspace" aria-label="Portrait line drawing editor">
 <div class="preview-card"><div class="preview-heading"><span>YOUR CANVAS</span><span class="preview-status" id="preview-status">A portrait will appear here</span></div>
-<div class="preview-stage"><div class="empty-state" id="empty-state"><div class="empty-illustration">✳<i></i></div><strong>Your portrait, in outline</strong><span>Choose a photo to start creating</span></div><div class="comparison" id="comparison" hidden><figure class="comparison-item"><figcaption>Original</figcaption><canvas id="original-canvas" aria-label="Original photo crop"></canvas></figure><figure class="comparison-item"><figcaption>Line drawing</figcaption><canvas id="result-canvas" aria-label="Generated portrait outline"></canvas></figure></div><div class="busy" id="busy" hidden><span class="spinner"></span><span>Drawing your outline…</span></div></div>
-<div class="preview-footer"><span id="photo-privacy-note"><b>✓</b> AI uploads only after consent and Generate</span><button class="text-button" id="reset-button" type="button" disabled>Start over</button></div></div>
+<div class="preview-stage"><div class="empty-state" id="empty-state"><div class="empty-illustration">✳<i></i></div><strong>Your portrait, in outline</strong><span>Choose a photo to start creating</span></div><div class="comparison" id="comparison" hidden><figure class="comparison-item"><figcaption>Original</figcaption><canvas id="original-canvas" aria-label="Original photo crop"></canvas></figure><figure class="comparison-item"><figcaption>Line drawing</figcaption><canvas id="result-canvas" aria-label="Generated portrait outline"></canvas></figure></div><div class="busy" id="busy" hidden><span class="spinner"></span><span>Generating your outline…</span></div></div>
+<div class="preview-footer"><span id="photo-privacy-note">The cropped photo is sent to Cloudflare only when you tap Generate</span><button class="text-button" id="reset-button" type="button" disabled>Start over</button></div></div>
 <div class="controls-card">
 <div class="section-title"><span class="step-number">01</span><div><h2>Choose a portrait</h2><p>A clear, well-lit photo works best.</p></div></div>
 <label class="upload-button" for="photo-input"><span class="upload-icon">＋</span><span id="upload-label">Choose a photo</span><span class="upload-arrow">↗</span></label><input id="photo-input" type="file" accept="image/*" aria-label="Choose a photo"><p class="file-note">Choose an image from your photo library</p>
@@ -23,22 +23,14 @@
 <label class="range-row"><span>Zoom</span><input type="range" id="zoom" min="100" max="240" value="100" disabled><output for="zoom">100%</output></label>
 <label class="range-row"><span>Left / right</span><input type="range" id="pan-x" min="-100" max="100" value="0" disabled><output for="pan-x">0</output></label>
 <label class="range-row"><span>Up / down</span><input type="range" id="pan-y" min="-100" max="100" value="0" disabled><output for="pan-y">0</output></label></div>
-<div class="section-title settings-title"><span class="step-number">03</span><div><h2>Shape your lines</h2><p>Choose how StitchSketch creates your drawing.</p></div></div>
-<label class="range-row setting-row style-row model-row"><span>Drawing model</span><select id="model-select" aria-label="Drawing model"><option value="flux4b" selected>FLUX.2 Klein 4B · AI default</option><option value="flux9b">FLUX.2 Klein 9B · quality test</option><option value="local">On-device line drawing</option></select></label>
-<p class="model-note" id="model-note">AI generation sends your cropped photo to Cloudflare after you agree and choose Generate. Internet is required.</p>
-<div class="ai-options" id="ai-options">
+<div class="section-title settings-title"><span class="step-number">03</span><div><h2>Guide your drawing</h2><p>FLUX.2 Klein 4B · fixed 512 × 512 output</p></div></div>
 <label class="ai-extra-instructions" for="ai-extra-instructions"><span>Extra instructions <small>(optional)</small></span><textarea id="ai-extra-instructions" rows="2" maxlength="400" placeholder="Leave blank to use the built-in embroidery prompt"></textarea></label>
-<label class="ai-consent" for="ai-consent"><input id="ai-consent" type="checkbox"><span>I understand that Generate sends this cropped photo to Cloudflare for AI processing.</span></label>
+<div class="ai-options" id="ai-options">
+<p class="ai-upload-notice">When you tap Generate, the cropped photo is sent to Cloudflare for AI processing. Internet is required.</p>
 <details class="ai-connection" id="ai-connection"><summary>AI access code</summary><p>Enter the Worker access code. StitchSketch can reuse the code saved by the standalone FLUX test in this browser.</p><label class="ai-key-field"><span>Access code</span><input id="ai-access-code" type="password" autocomplete="off" placeholder="Worker access code"></label><button class="connection-button" id="save-ai-settings" type="button">Save access code</button><p class="ai-connection-status" id="ai-connection-status" role="status" aria-live="polite"></p></details>
-<button class="save-button ai-generate-button" id="generate-button" type="button" disabled><span>Generate AI drawing</span><span>↗</span></button>
+<button class="save-button ai-generate-button" id="generate-button" type="button" disabled><span>Generate drawing</span><span>↗</span></button>
 </div>
-<div class="local-options" id="local-options" hidden>
-<label class="range-row setting-row style-row"><span>Drawing style</span><select id="drawing-style"><option value="minimalist">Minimalist portrait</option><option value="classic" selected>Classic embroidery</option><option value="detailed">Detailed illustration</option></select></label>
-<label class="range-row setting-row"><span>Detail</span><input type="range" id="detail" min="1" max="10" value="5"><output for="detail">5</output></label>
-<label class="range-row setting-row"><span>Line strength</span><input type="range" id="strength" min="1" max="10" value="5"><output for="strength">5</output></label>
-<label class="background-toggle"><input id="remove-background" type="checkbox" checked><span>Remove background lines</span></label>
-</div>
-<button class="save-button" id="save-button" type="button" disabled><span>Save drawing to Photos</span><span>↓</span></button><p class="save-note">AI drawing needs internet; on-device drawing works offline after the app is cached.</p>
+<button class="save-button" id="save-button" type="button" disabled><span>Save drawing to Photos</span><span>↓</span></button><p class="save-note">AI generation needs an internet connection.</p>
 </div></section><footer class="site-footer"><span>Made for the joy of making.</span><span>StitchSketch <b>✳</b></span></footer></main><div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script type="module" src="./scripts/app.js"></script>
 </body></html>
